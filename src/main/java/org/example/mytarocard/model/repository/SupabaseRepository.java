@@ -11,7 +11,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class SupabaseRepository {
@@ -25,25 +27,21 @@ public class SupabaseRepository {
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
     private final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-    // 나중에 수정이 필요하면 overloading 여러개의 파람.
-    public  String callModel(LLMModel model, String prompt) throws IOException, InterruptedException {
-        String url = switch (model.platform) {
-            case GEMINI -> "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%s".formatted(dotenv.get("GEMINI_KEY"));
-            default -> throw new RuntimeException("Unknown platform: " + model.platform);
+    public void save(String id, String text, String image) throws IOException, InterruptedException {
+        String supabaseKey = dotenv.get("SUPABASE_KEY");
+        String[] headers = new String[]{
+                "apikey", supabaseKey,
+                "Authorization", "Bearer %s".formatted(supabaseKey),
+                "Content-Type", "application/json",
+                "Prefer", "return=minimal"
         };
-        String[] headers = switch (model.platform) {
-            case GEMINI -> new String[]{"Content-Type", "application/json"};
-            default -> throw new IllegalStateException("Unexpected platform: " + model.platform);
-        };
-        String body = switch (model.modelName) {
-            case "gemini-2.0-flash" -> mapper.writeValueAsString(new GeminiPayload(
-                    List.of(new GeminiPayload.Content("user", List.of(
-                            new GeminiPayload.Part(prompt))))
-            ));
-            default -> throw new RuntimeException("Unexpected model: " + model);
-        };
+        Map<String, String> map = new HashMap<>();
+        map.put("id", id);
+        map.put("text", text);
+        map.put("image", image);
+        String body = mapper.writeValueAsString(map);
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
+                .uri(URI.create(dotenv.get("SUPABASE_URL") + "/rest/v1/TARO"))
                 .method("POST", HttpRequest.BodyPublishers.ofString(body))
                 .headers(headers)
                 .build();
@@ -52,12 +50,5 @@ public class SupabaseRepository {
         if (response.statusCode() >= 400) {
             logger.info(response.body());
         }
-        switch (model.modelName) {
-            case "gemini-2.0-flash" -> {
-                return mapper.readValue(response.body(), GeminiResponse.class).candidates().get(0).content().parts().get(0).text();
-            }
-            default -> throw new RuntimeException("Unexpected model: " + model);
-        }
-//        return response.body();
     }
 }
