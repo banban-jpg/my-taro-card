@@ -5,8 +5,6 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.example.mytarocard.model.constant.LLMModel;
 import org.example.mytarocard.model.dto.GeminiPayload;
 import org.example.mytarocard.model.dto.GeminiResponse;
-import org.example.mytarocard.model.dto.LLMServiceParam;
-import org.example.mytarocard.model.dto.LLMServiceResponse;
 
 import java.io.IOException;
 import java.net.URI;
@@ -16,14 +14,14 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class LLMRepository {
-    private LLMRepository() {}
-    private final static LLMRepository instance = new LLMRepository();
-    public static LLMRepository getInstance() {
+public class SupabaseRepository {
+    private SupabaseRepository() {}
+    private final static SupabaseRepository instance = new SupabaseRepository();
+    public static SupabaseRepository getInstance() {
         return instance;
     }
 
-    private final Logger logger = Logger.getLogger(LLMRepository.class.getName());
+    private final Logger logger = Logger.getLogger(SupabaseRepository.class.getName());
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
     private final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();

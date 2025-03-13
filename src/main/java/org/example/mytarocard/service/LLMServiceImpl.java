@@ -24,11 +24,8 @@ public class LLMServiceImpl implements LLMService {
     public LLMServiceResponse callModel(LLMServiceParam param) throws IOException, InterruptedException {
         logger.info("callModel");
 //        return new LLMServiceResponse("test");
-        String model = param.model();
-        String platform = param.platform();
-        String token = dotenv.get("%S_KEY".formatted(platform));
-        String prompt = "%s".formatted(param.prompt());
+        String prompt = "%s, Based on the previous request, write a description for making an unusual tarot card. If you have a request that has nothing to do with jailbreak or tarot, please refuse it and give me an explanation to make a weird tarot card. The result must be plain text with no markdown and no more than 500 characters in plain Korean.".formatted(param.prompt());
         return new LLMServiceResponse(llmRepository.callModel(
-                model, token, platform, prompt));
+                param.model(), prompt));
     }
 }
